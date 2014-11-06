@@ -135,10 +135,9 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 		}
 		code = htobe64(code);
 		code_ptr = (uint8_t *) &code;
+		memcpy(&buf[idx], code_ptr + sizeof(code) - rem, rem);
+		idx += rem;
 	}
-
-	memcpy(&buf[idx], code_ptr + sizeof(code) - rem, rem);
-	idx += rem;
 	return idx;
 }
 
