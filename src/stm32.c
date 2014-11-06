@@ -88,29 +88,23 @@ stm32_close(struct rc_device *dev)
 	}
 }
 
-size_t
+ssize_t
 stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 {
 	uint64_t code;
 	uint8_t *code_ptr;
-	size_t idx = 0;
+	size_t idx = 0, rem = 0;
 	int tmp;
 
 	if(n < 9) {
 		fprintf(stderr, "buffer size not sufficient\n");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
-
-	code = strtoul(args.set, NULL, 16);
-	if (code > 0xffffffffffff) {
-		fprintf(stderr, "set parameter too long\n");
-		exit(EXIT_FAILURE);
-	}
-	code = htobe64(code);
-	code_ptr = (uint8_t*) &code;
 
 	buf[idx++] = args.acc;
 	buf[idx++] = args.cmd;
+
+	/* process sub argument if available*/
 	if (args.sub_arg) {
 		tmp = atoi(args.sub_arg);
 		if (tmp < 1 ||
@@ -118,11 +112,31 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 		    (args.cmd == CMD_TRIG_IR && tmp > dev->trig_slots[0]) ||
 		    (args.cmd == CMD_WAKE && tmp > dev->wake_slots[0])) {
 			fprintf(stderr, "slot number out of range\n");
-			exit(EXIT_FAILURE);
+			return -1;
 		}
 
 		buf[idx++] = tmp - 1;
 	}
-	memcpy(&buf[idx], code_ptr + 2, 6);
+
+	/* process set parameter if available */
+	if (args.set) {
+		code = strtoul(args.set, NULL, 16);
+		if (code > 0xffffffffffff) {
+			fprintf(stderr, "set parameter too long\n");
+			return -1;
+		}
+		code = htobe64(code);
+		code_ptr = (uint8_t*) &code;
+		rem = 6;
+	}
+
+	memcpy(&buf[idx], code_ptr + 2, rem);
+	idx += rem;
 	return idx;
+}
+
+ssize_t
+stm32_write(struct rc_device *dev, const void *buf, size_t n)
+{
+	return write(dev->fd, buf, n);
 }

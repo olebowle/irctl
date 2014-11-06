@@ -52,10 +52,10 @@ struct rc_driver {
 	void (*close) (struct rc_device *dev);
 
 	int (*read) (struct rc_device *dev, const void *buf, size_t n);
-	int (*write) (struct rc_device *dev, const void *buf, size_t n);
+	ssize_t (*write) (struct rc_device *dev, const void *buf, size_t n);
 
 	size_t (*parse_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
-	size_t (*prepare_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
+	ssize_t (*prepare_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
 };
 
 #endif /* CAPABILITIES_H */

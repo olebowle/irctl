@@ -21,6 +21,7 @@ int
 main (int argc, char **argv)
 {
 	int tmp;
+	ssize_t ret = 0;
 	uint8_t buf[256];
 	struct rc_driver drv;
 	extern char *optarg;
@@ -100,32 +101,47 @@ main (int argc, char **argv)
 
 	args.path = argv[optind];
 
+	memset(&drv, 0, sizeof(drv));
 	if (!strcmp(args.drv_name, "stm32")) {
 		drv.init = stm32_init;
 		drv.open = stm32_open;
 		drv.close = stm32_close;
 		drv.prepare_buf = stm32_prepare_buf;
+		drv.write = stm32_write;
 	} else {
 		fprintf(stderr, "unkown driver\n");
 		exit(EXIT_FAILURE);
 	}
 
-	drv.init(&drv.dev);
+	if (drv.init)
+		drv.init(&drv.dev);
 	if (!drv.dev.feat_mat[args.acc][args.cmd]) {
 		fprintf(stderr, "option not supported\n");
 		exit(EXIT_FAILURE);
 	}
 
-	drv.prepare_buf(&drv.dev, buf, sizeof(buf));
+	if (drv.prepare_buf) {
+		ret = drv.prepare_buf(&drv.dev, buf, sizeof(buf));
+		if (ret == -1)
+			exit(EXIT_FAILURE);
+	}
 
 #ifdef DEBUG
+	printf("%lu bytes prepared in buffer\n", ret);
 	printf("0x");
-	for(tmp = 0; tmp < 9; tmp++)
+	for (tmp = 0; tmp < ret; tmp++)
 		printf("%02x", buf[tmp]);
 	printf("\n");
 #endif /* DEBUG */
 
-	drv.open(&drv.dev, args.path, O_RDWR);
-	drv.close(&drv.dev);
+	if (drv.open)
+		drv.open(&drv.dev, args.path, O_RDWR);
+
+	if (drv.write)
+		drv.write(&drv.dev, buf, sizeof(buf));
+
+	if (drv.close)
+		drv.close(&drv.dev);
+
 	return EXIT_SUCCESS;
 }
