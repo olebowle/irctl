@@ -1,4 +1,7 @@
 TARGET = irctl
+PREFIX ?= /usr/local
+
+BINDIR = $(DESTDIR)$(PREFIX)/bin
 
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
@@ -9,6 +12,9 @@ CFLAGS = -Wall -Wextra -Werror -pedantic $(INCLUDES) $(DEFINES)
 
 $(TARGET): $(OBJ)
 	$(CC) -o $@ $+
+
+install: $(TARGET)
+	install -Dm644 $(TARGET) $(BINDIR)/$(TARGET)
 
 .PHONY: clean
 clean:
