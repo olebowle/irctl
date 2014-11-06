@@ -14,7 +14,7 @@ $(TARGET): $(OBJ)
 	$(CC) -o $@ $+
 
 install: $(TARGET)
-	install -Dm644 $(TARGET) $(BINDIR)/$(TARGET)
+	install -Dm755 $(TARGET) $(BINDIR)/$(TARGET)
 
 .PHONY: clean
 clean:
