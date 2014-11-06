@@ -115,8 +115,9 @@ main (int argc, char **argv)
 
 	if (drv.init)
 		drv.init(&drv.dev);
-	if (!drv.dev.feat_mat[args.acc][args.cmd]) {
-		fprintf(stderr, "option not supported\n");
+
+	if (!(*drv.dev.com_mat)[args.acc][args.cmd].rx) {
+		fprintf(stderr, "operation not supported\n");
 		exit(EXIT_FAILURE);
 	}
 

@@ -2,7 +2,6 @@
 #define CAPABILITIES_H
 
 #include <inttypes.h>
-#include <stdbool.h>
 #include <sys/types.h>
 #include "irmpprotocols.h"
 
@@ -18,7 +17,7 @@ enum __attribute__ ((__packed__)) access {
 };
 #define COMMAND_COUNT 7
 enum __attribute__ ((__packed__)) command {
-	CMD_EMIT = 1,
+	CMD_EMIT,
 	CMD_CAPS,
 	CMD_FW,
 	CMD_ALARM,
@@ -34,12 +33,17 @@ struct global_args {
 	enum command cmd;
 };
 
+struct com_ssize {
+	ssize_t tx;
+	ssize_t rx;
+};
+
 struct rc_device {
 	int fd;
 	const uint8_t *trig_slots;
 	const uint8_t *wake_slots;
 
-	const bool (*feat_mat)[ACCESS_COUNT][COMMAND_COUNT];
+	const struct com_ssize (*com_mat)[ACCESS_COUNT][COMMAND_COUNT];
 	const uint8_t *rx_protocols;
 	const uint8_t *tx_protocols;
 };
