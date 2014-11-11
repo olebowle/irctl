@@ -26,6 +26,12 @@ enum __attribute__ ((__packed__)) command {
 	CMD_WAKE
 };
 
+enum __attribute__ ((__packed__)) status {
+	STAT_CMD,
+	STAT_SUCCESS,
+	STAT_FAILURE
+};
+
 struct global_args {
 	char *drv_name, *emit, *fw, *path, *set, *sub_arg;
 	unsigned int main_cmd, sub_cmd;
@@ -53,12 +59,12 @@ struct rc_driver {
 
 	void (*init) (struct rc_device *dev);
 	int (*open) (struct rc_device *dev, const char *path, int flags);
-	void (*close) (struct rc_device *dev);
+	int (*close) (struct rc_device *dev);
 
-	int (*read) (struct rc_device *dev, const void *buf, size_t n);
+	ssize_t (*read) (struct rc_device *dev, void *buf, size_t n);
 	ssize_t (*write) (struct rc_device *dev, const void *buf, size_t n);
 
-	size_t (*parse_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
+	int (*parse_buf) (struct rc_device *dev, const uint8_t *buf, size_t n);
 	ssize_t (*prepare_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
 };
 

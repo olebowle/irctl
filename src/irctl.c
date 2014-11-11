@@ -107,6 +107,8 @@ main (int argc, char **argv)
 		drv.open = stm32_open;
 		drv.close = stm32_close;
 		drv.prepare_buf = stm32_prepare_buf;
+		drv.parse_buf = stm32_parse_buf;
+		drv.read = stm32_read;
 		drv.write = stm32_write;
 	} else {
 		fprintf(stderr, "unkown driver\n");
@@ -136,13 +138,29 @@ main (int argc, char **argv)
 #endif /* DEBUG */
 
 	if (drv.open)
-		drv.open(&drv.dev, args.path, O_RDWR);
+		ret = drv.open(&drv.dev, args.path, O_RDWR);
+		if (ret == -1)
+			exit(EXIT_FAILURE);
 
 	if (drv.write)
-		drv.write(&drv.dev, buf, sizeof(buf));
+		ret = drv.write(&drv.dev, buf, sizeof(buf));
+		if (ret == -1)
+			exit(EXIT_FAILURE);
+
+	if (drv.read)
+		ret = drv.read(&drv.dev, buf, sizeof(buf));
+		if (ret == -1)
+			exit(EXIT_FAILURE);
+
+	if (drv.parse_buf)
+		ret = drv.parse_buf(&drv.dev, buf, ret);
+		if (ret == -1)
+			exit(EXIT_FAILURE);
 
 	if (drv.close)
-		drv.close(&drv.dev);
+		ret = drv.close(&drv.dev);
+		if (ret == -1)
+			exit(EXIT_FAILURE);
 
 	return EXIT_SUCCESS;
 }
