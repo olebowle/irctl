@@ -80,7 +80,7 @@ stm32_open(struct rc_device *dev, const char *path, int flags)
 {
 	dev->fd = open(path, flags);
 	if (dev->fd == -1)
-		perror("opening device failed\n");
+		perror("opening device failed");
 	return dev->fd;
 }
 
@@ -89,7 +89,7 @@ stm32_close(struct rc_device *dev)
 {
 	dev->fd = close(dev->fd);
 	if (dev->fd == -1)
-		perror("closing device failed\n");
+		perror("closing device failed");
 	return dev->fd;
 }
 
@@ -200,7 +200,7 @@ stm32_read(struct rc_device *dev, void *buf, size_t n)
 			continue;
 		}
 		if (ret == -1) {
-			perror("reading from device failed\n");
+			perror("reading from device failed");
 			break;
 		}
 		idx += ret;
@@ -214,6 +214,6 @@ stm32_write(struct rc_device *dev, const void *buf, size_t n)
 	ssize_t ret;
 	ret = write(dev->fd, buf, n);
 	if (ret == -1)
-		perror("writing to device failed\n");
+		perror("writing to device failed");
 	return ret;
 }

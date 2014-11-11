@@ -10,10 +10,35 @@
 /* no need to initialize, since global variables are initialized to zero */
 struct global_args args;
 
-void
-usage (void)
+static void
+usage (char *name)
 {
-	fprintf(stderr, "usage: irctl\n");
+	fprintf(stderr,
+		"Usage:	%s -d driver -g|-r	[-a|-i slot|-t slot|-w slot] device\n"
+		"	%s -d driver -s ARG	[-a|-i slot|-t slot|-w slot] device\n"
+		"	%s -d driver [-c|-e IR|-f firmware] device\n\n"
+		"	-c, --caps		get capabilities of controller\n"
+		"	-d, --driver		driver to use to communicate to controller\n"
+		"	-e, --emit=IR		IR-code to emit once\n"
+		"	-f, --flash=FW		flash firmware FW to controller\n"
+		"	-g, --get		get property\n"
+		"	-s, --set=ARG		set property to ARG\n"
+		"	-r, --reset		reset property\n", name, name, name);
+	fprintf(stderr,
+		"Properties:\n"
+		"	-a, --alarm		number of seconds to wakeup host from now\n"
+		"	-i, --ir=SLOT		emitted ir-code on trigger command of SLOT\n"
+		"	-t, --trigger=SLOT	trigger command of SLOT\n"
+		"	-w, --wakeup=SLOT	wakeup ir-code of SLOT\n\n");
+	fprintf(stderr,
+		"Examples, using driver stm32 on /dev/hidraw0\n"
+		"	Get wakeup time in seconds from now:\n"
+		"		%s -dstm32 -a -g /dev/hidraw0\n"
+		"	Set first wakeup ir-code to 0x112233445566\n"
+		"		%s -dstm32 -w1 -s0x112233445566 /dev/hidraw0\n"
+		"	Get third triggered ir-code\n"
+		"		%s -dstm32 -i3 -g /dev/hidraw0\n",
+		name, name, name);
 	exit(EXIT_FAILURE);
 }
 
@@ -92,12 +117,12 @@ main (int argc, char **argv)
 			args.sub_cmd++;
 			break;
 		default:
-			usage();
+			usage(argv[0]);
 			break;
 		}
 	}
 	if (args.main_cmd != 1 || args.sub_cmd > 1 || (args.sub_cmd && !args.main_cmd) || optind + 1 != argc || !args.drv_name)
-		usage();
+		usage(argv[0]);
 
 	args.path = argv[optind];
 
