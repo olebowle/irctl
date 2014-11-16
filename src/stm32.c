@@ -96,13 +96,14 @@ stm32_close(struct rc_device *dev)
 int
 stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 {
-	unsigned int idx = 0;
-	(void)dev;
+	/* 0==ReportID */
+	unsigned int idx = 1;
+	(void)dev; (void)n;
 
 	switch((enum status) buf[idx++]) {
 	case STAT_CMD:
 		/* we should not get a command from the device, only an answer*/
-		fprintf(stderr, "unexpected data received\n");
+		fprintf(stderr, "unexpected data received (command instead of answer)\n");
 		return EXIT_FAILURE;
 	case STAT_SUCCESS:
 		printf("command succeeded\n");
@@ -110,6 +111,9 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 	case STAT_FAILURE:
 		printf("command failed\n");
 		break;
+	default:
+		fprintf(stderr, "unexpected data received\n");
+		return EXIT_FAILURE;
 	}
 
 	if (buf[idx++] != args.acc || buf[idx++] != args.cmd) {
@@ -118,7 +122,8 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 	}
 
 	printf("0x");
-	for (; idx < n; idx++)
+	/* expected number of bytes to receive + ReportID */
+	for (; idx < (*dev->com_mat)[args.acc][args.cmd].rx + 1; idx++)
 		printf("%02x", buf[idx]);
 	printf("\n");
 	return EXIT_SUCCESS;
@@ -132,13 +137,15 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	size_t idx = 0, exp, rem;
 	int arg;
 
-	/* expected number of bytes to transmit */
-	exp = (*dev->com_mat)[args.acc][args.cmd].tx;
+	/* expected number of bytes to transmit + ReportID */
+	exp = (*dev->com_mat)[args.acc][args.cmd].tx + 1;
 	if(n < exp) {
 		fprintf(stderr, "buffer size not sufficient\n");
 		return -1;
 	}
 
+	/* ReportID */
+	buf[idx++] = 0x03;
 	buf[idx++] = STAT_CMD;
 	buf[idx++] = args.acc;
 	buf[idx++] = args.cmd;
@@ -189,9 +196,10 @@ stm32_read(struct rc_device *dev, void *buf, size_t n)
 	 * -1 signifies an undefined number of bytes, so read only once
 	 */
 	exp = (*dev->com_mat)[args.acc][args.cmd].rx;
-	if (exp >= 0 && (size_t) exp > n)
+	if (exp >= 0 && (size_t) exp > n) {
 		fprintf(stderr, "buffer size not sufficient\n");
 		return -1;
+	}
 
 	do {
 		ret = read(dev->fd, buf, n);

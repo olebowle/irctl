@@ -177,10 +177,18 @@ main (int argc, char **argv)
 		if (ret == -1)
 			exit(EXIT_FAILURE);
 
+#ifdef DEBUG
+	printf("%lu bytes read\n", ret);
+	printf("0x");
+	for (tmp = 0; tmp < ret; tmp++)
+		printf("%02x", buf[tmp]);
+	printf("\n");
+#endif /* DEBUG */
+
 	if (drv.parse_buf)
 		ret = drv.parse_buf(&drv.dev, buf, ret);
-		if (ret == -1)
-			exit(EXIT_FAILURE);
+		if (ret != EXIT_SUCCESS)
+			exit(ret);
 
 	if (drv.close)
 		ret = drv.close(&drv.dev);
