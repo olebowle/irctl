@@ -155,9 +155,9 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	/* process sub argument if available*/
 	if (args.sub_arg) {
 		arg = atoi(args.sub_arg);
-		if (arg < 0 ||
-		    (args.cmd == CMD_MACRO && arg > dev->macro_slots[0] - 1) ||
-		    (args.cmd == CMD_WAKE && arg > dev->wake_slots[0] - 1)) {
+		if (arg < 1 ||
+		    (args.cmd == CMD_MACRO && arg > dev->macro_slots[0]) ||
+		    (args.cmd == CMD_WAKE && arg > dev->wake_slots[0])) {
 			fprintf(stderr, "sub argument out of range\n");
 			return -1;
 		}
@@ -167,7 +167,7 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	/* process if available, this should only be possible with CMD_MACRO */
 	if (args.ir) {
 		arg = atoi(args.ir);
-		if (arg < 0 || arg > dev->macro_depth[0] - 1) {
+		if (arg < 0 || arg > dev->macro_depth[0]) {
 			fprintf(stderr, "ir argument out of range\n");
 			return -1;
 		}

@@ -35,12 +35,12 @@ usage (char *name)
 		"	1. Get wakeup time in seconds from now\n"
 		"		%s -dstm32 -a -g /dev/hidraw0\n"
 		"	2. Set first wakeup ir-code to 0x112233445566\n"
-		"		%s -dstm32 -w0 -s0x112233445566 /dev/hidraw0\n"
+		"		%s -dstm32 -w1 -s0x112233445566 /dev/hidraw0\n"
 		"	3. Set third macro to be triggered by 0x112233445566,\n"
 		"	   which will when send out two commands (1: 0x778899AABBCC, 2: 0xDDEEFF001122)\n"
-		"		%s -dstm32 -m2 -i0 -s0x112233445566 /dev/hidraw0\n"
-		"		%s -dstm32 -m2 -i1 -s0x778899AABBCC /dev/hidraw0\n"
-		"		%s -dstm32 -m2 -i2 -s0xDDEEFF001122 /dev/hidraw0\n", name, name, name, name, name);
+		"		%s -dstm32 -m3 -i0 -s0x112233445566 /dev/hidraw0\n"
+		"		%s -dstm32 -m3 -i1 -s0x778899AABBCC /dev/hidraw0\n"
+		"		%s -dstm32 -m3 -i2 -s0xDDEEFF001122 /dev/hidraw0\n", name, name, name, name, name);
 	exit(EXIT_FAILURE);
 }
 
