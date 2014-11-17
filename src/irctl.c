@@ -14,8 +14,8 @@ static void
 usage (char *name)
 {
 	fprintf(stderr,
-		"Usage:	%s -d driver -g|-r	[-a|-i slot|-t slot|-w slot] device\n"
-		"	%s -d driver -s ARG	[-a|-i slot|-t slot|-w slot] device\n"
+		"Usage:	%s -d driver -g|-r  [-a|-i slot|-m slot|-w slot] device\n"
+		"	%s -d driver -s ARG [-a|-i slot|-m slot|-w slot] device\n"
 		"	%s -d driver [-c|-e IR|-f firmware] device\n\n"
 		"	-c, --caps		get capabilities of controller\n"
 		"	-d, --driver		driver to use to communicate to controller\n"
@@ -27,18 +27,20 @@ usage (char *name)
 	fprintf(stderr,
 		"Properties:\n"
 		"	-a, --alarm		number of seconds to wakeup host from now\n"
-		"	-i, --ir=SLOT		emitted ir-code on trigger command of SLOT\n"
-		"	-t, --trigger=SLOT	trigger command of SLOT\n"
-		"	-w, --wakeup=SLOT	wakeup ir-code of SLOT\n\n");
+		"	-i, --ir=I_SLOT		ir-code in I_SLOT of macro M_SLOT\n"
+		"	-m, --macro=M_SLOT	select macro M_SLOT\n"
+		"	-w, --wakeup=W_SLOT	wakeup ir-code of W_SLOT\n\n");
 	fprintf(stderr,
-		"Examples, using driver stm32 on /dev/hidraw0\n"
-		"	Get wakeup time in seconds from now:\n"
+		"Examples (using driver stm32 on /dev/hidraw0):\n"
+		"	1. Get wakeup time in seconds from now\n"
 		"		%s -dstm32 -a -g /dev/hidraw0\n"
-		"	Set first wakeup ir-code to 0x112233445566\n"
-		"		%s -dstm32 -w1 -s0x112233445566 /dev/hidraw0\n"
-		"	Get third triggered ir-code\n"
-		"		%s -dstm32 -i3 -g /dev/hidraw0\n",
-		name, name, name);
+		"	2. Set first wakeup ir-code to 0x112233445566\n"
+		"		%s -dstm32 -w0 -s0x112233445566 /dev/hidraw0\n"
+		"	3. Set third macro to be triggered by 0x112233445566,\n"
+		"	   which will when send out two commands (1: 0x778899AABBCC, 2: 0xDDEEFF001122)\n"
+		"		%s -dstm32 -m2 -i0 -s0x112233445566 /dev/hidraw0\n"
+		"		%s -dstm32 -m2 -i1 -s0x778899AABBCC /dev/hidraw0\n"
+		"		%s -dstm32 -m2 -i2 -s0xDDEEFF001122 /dev/hidraw0\n", name, name, name, name, name);
 	exit(EXIT_FAILURE);
 }
 
@@ -57,15 +59,15 @@ main (int argc, char **argv)
 		{"emit",	required_argument, 	NULL,	'e'},
 		{"flash",	required_argument,	NULL,	'f'},
 		{"get",		no_argument, 		NULL,	'g'},
-		{"irslot",	required_argument, 	NULL,	'i'},
+		{"ir",		required_argument, 	NULL,	'i'},
+		{"macro",	required_argument, 	NULL,	'm'},
 		{"reset",	no_argument,	 	NULL,	'r'},
 		{"set",		required_argument, 	NULL,	's'},
-		{"trigcmdslot",	required_argument, 	NULL,	't'},
-		{"wakeslot",	required_argument, 	NULL,	'w'},
+		{"wakeup",	required_argument, 	NULL,	'w'},
 		{0, 0, 0, 0}
 	};
 
-	while ((tmp = getopt_long (argc, argv, "acd:e:f:gi:rs:t:w:", long_options, NULL)) != -1) {
+	while ((tmp = getopt_long (argc, argv, "acd:e:f:gi:m:rs:w:", long_options, NULL)) != -1) {
 		switch (tmp) {
 		case 'a':
 			args.cmd = CMD_ALARM;
@@ -93,8 +95,11 @@ main (int argc, char **argv)
 			args.main_cmd++;
 			break;
 		case 'i':
+			args.ir = optarg;
+			break;
+		case 'm':
 			args.sub_arg = optarg;
-			args.cmd = CMD_TRIG_IR;
+			args.cmd = CMD_MACRO;
 			args.sub_cmd++;
 			break;
 		case 'r':
@@ -106,11 +111,6 @@ main (int argc, char **argv)
 			args.acc = ACC_SET;
 			args.main_cmd++;
 			break;
-		case 't':
-			args.sub_arg = optarg;
-			args.cmd = CMD_TRIG_CMD;
-			args.sub_cmd++;
-			break;
 		case 'w':
 			args.sub_arg = optarg;
 			args.cmd = CMD_WAKE;
@@ -121,7 +121,7 @@ main (int argc, char **argv)
 			break;
 		}
 	}
-	if (args.main_cmd != 1 || args.sub_cmd > 1 || (args.sub_cmd && !args.main_cmd) || optind + 1 != argc || !args.drv_name)
+	if (args.main_cmd != 1 || args.sub_cmd > 1 || (args.sub_cmd && !args.main_cmd) || (args.cmd == CMD_MACRO && !args.ir) || optind + 1 != argc || !args.drv_name)
 		usage(argv[0]);
 
 	args.path = argv[optind];

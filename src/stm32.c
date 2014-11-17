@@ -11,10 +11,10 @@
 extern struct global_args args;
 
 const struct com_ssize stm32_com_mat[ACCESS_COUNT][COMMAND_COUNT] = {
-/*		EMIT	CAPS	FW	ALARM	TRIGCMD	TRIGIR	WAKEIR	*/
-/* GET */	{{0,0},	{0,0},	{0,0},	{3,7},	{4,9},	{4,9},	{4,9}},
-/* SET */	{{9,3},	{0,0},	{-1,3},	{7,3},	{10,3},	{10,3},	{10,3}},
-/* RESET */	{{0,0},	{0,0},	{0,0},	{3,3},	{4,3},	{4,3},	{4,3}}
+/*		EMIT	CAPS	FW	ALARM	MACRO	WAKE	*/
+/* GET */	{{0,0},	{0,0},	{0,0},	{3,7},	{5,9},	{4,9}},
+/* SET */	{{9,3},	{0,0},	{-1,3},	{7,3},	{11,3},	{10,3}},
+/* RESET */	{{0,0},	{0,0},	{0,0},	{3,3},	{5,3},	{4,3}}
 };
 
 const uint8_t stm32_rx_protocols[IRMP_N_PROTOCOLS] = {
@@ -55,7 +55,8 @@ const uint8_t stm32_tx_protocols[IRMP_N_PROTOCOLS] = {
 	0
 };
 
-const uint8_t stm32_trig_slots = 8;
+const uint8_t stm32_macro_slots = 8;
+const uint8_t stm32_macro_depth = 8;
 const uint8_t stm32_wake_slots = 1;
 
 /* https://stackoverflow.com/questions/8774567 */
@@ -68,7 +69,8 @@ bit_mask(size_t x)
 void
 stm32_init(struct rc_device *dev)
 {
-	dev->trig_slots = &stm32_trig_slots;
+	dev->macro_slots = &stm32_macro_slots;
+	dev->macro_depth = &stm32_macro_depth;
 	dev->wake_slots = &stm32_wake_slots;
 	dev->com_mat = &stm32_com_mat;
 	dev->rx_protocols = stm32_rx_protocols;
@@ -153,15 +155,23 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	/* process sub argument if available*/
 	if (args.sub_arg) {
 		arg = atoi(args.sub_arg);
-		if (arg < 1 ||
-		    (args.cmd == CMD_TRIG_CMD && arg > dev->trig_slots[0]) ||
-		    (args.cmd == CMD_TRIG_IR && arg > dev->trig_slots[0]) ||
-		    (args.cmd == CMD_WAKE && arg > dev->wake_slots[0])) {
-			fprintf(stderr, "argument out of range\n");
+		if (arg < 0 ||
+		    (args.cmd == CMD_MACRO && arg > dev->macro_slots[0] - 1) ||
+		    (args.cmd == CMD_WAKE && arg > dev->wake_slots[0] - 1)) {
+			fprintf(stderr, "sub argument out of range\n");
 			return -1;
 		}
+		buf[idx++] = arg;
+	}
 
-		buf[idx++] = arg - 1;
+	/* process if available, this should only be possible with CMD_MACRO */
+	if (args.ir) {
+		arg = atoi(args.ir);
+		if (arg < 0 || arg > dev->macro_depth[0] - 1) {
+			fprintf(stderr, "ir argument out of range\n");
+			return -1;
+		}
+		buf[idx++] = arg;
 	}
 
 	/* process set parameter if available */

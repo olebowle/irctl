@@ -6,7 +6,7 @@ BINDIR = $(DESTDIR)$(PREFIX)/bin
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 
-#DEFINES = -DDEBUG=1
+#DEFINES = -DDEBUG
 INCLUDES = -Isrc -Iext/irmp-2.6.7
 CFLAGS = -Wall -Wextra -Werror -pedantic $(INCLUDES) $(DEFINES)
 

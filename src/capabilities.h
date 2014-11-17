@@ -15,14 +15,13 @@ enum __attribute__ ((__packed__)) access {
 	ACC_SET,
 	ACC_RESET
 };
-#define COMMAND_COUNT 7
+#define COMMAND_COUNT 6
 enum __attribute__ ((__packed__)) command {
 	CMD_EMIT,
 	CMD_CAPS,
 	CMD_FW,
 	CMD_ALARM,
-	CMD_TRIG_CMD,
-	CMD_TRIG_IR,
+	CMD_MACRO,
 	CMD_WAKE
 };
 
@@ -33,7 +32,7 @@ enum __attribute__ ((__packed__)) status {
 };
 
 struct global_args {
-	char *drv_name, *emit, *fw, *path, *set, *sub_arg;
+	char *drv_name, *emit, *fw, *ir, *path, *set, *sub_arg;
 	unsigned int main_cmd, sub_cmd;
 	enum access acc;
 	enum command cmd;
@@ -46,7 +45,8 @@ struct com_ssize {
 
 struct rc_device {
 	int fd;
-	const uint8_t *trig_slots;
+	const uint8_t *macro_slots;
+	const uint8_t *macro_depth;
 	const uint8_t *wake_slots;
 
 	const struct com_ssize (*com_mat)[ACCESS_COUNT][COMMAND_COUNT];
