@@ -57,7 +57,7 @@ const uint8_t stm32_tx_protocols[IRMP_N_PROTOCOLS] = {
 
 const uint8_t stm32_macro_slots = 8;
 const uint8_t stm32_macro_depth = 8;
-const uint8_t stm32_wake_slots = 1;
+const uint8_t stm32_wake_slots = 8;
 
 /* https://stackoverflow.com/questions/8774567 */
 static inline uint64_t
