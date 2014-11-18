@@ -49,7 +49,7 @@ main (int argc, char **argv)
 {
 	int tmp;
 	ssize_t ret = 0;
-	uint8_t buf[256];
+	uint8_t buf[17];
 	struct rc_driver drv;
 	extern char *optarg;
 	struct option long_options[] = {

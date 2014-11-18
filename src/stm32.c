@@ -108,10 +108,14 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 		fprintf(stderr, "unexpected data received (command instead of answer)\n");
 		return EXIT_FAILURE;
 	case STAT_SUCCESS:
+#ifdef DEBUG
 		printf("command succeeded\n");
+#endif
 		break;
 	case STAT_FAILURE:
+#ifdef DEBUG
 		printf("command failed\n");
+#endif
 		break;
 	default:
 		fprintf(stderr, "unexpected data received\n");
