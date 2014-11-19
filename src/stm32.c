@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "capabilities.h"
+#include "irmpsystem.h"
 #include "stm32.h"
 
 extern struct global_args args;
@@ -138,10 +139,9 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 ssize_t
 stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 {
-	uint64_t code;
-	uint8_t *code_ptr;
-	size_t idx = 0, exp, rem;
+	size_t idx = 0, exp;
 	int arg;
+	IRMP_DATA ir;
 
 	/* expected number of bytes to transmit + ReportID */
 	exp = (*dev->com_mat)[args.acc][args.cmd].tx + 1;
@@ -180,16 +180,23 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 
 	/* process set parameter if available */
 	if (args.set) {
-		rem = exp - idx;
-		code = strtoul(args.set, NULL, 16);
-		if (code > bit_mask(rem * CHAR_BIT)) {
-			fprintf(stderr, "set parameter too long\n");
-			return -1;
+		switch((enum command) args.cmd) {
+		case CMD_ALARM:
+			sscanf(args.set, "%"PRIx32"", (unsigned int *) &buf[idx]);
+			break;
+		case CMD_MACRO:
+		case CMD_WAKE:
+			sscanf(args.set, "0x%02x%04x%04x%02x",
+				(unsigned int *) &ir.protocol,
+				(unsigned int *) &ir.address,
+				(unsigned int *) &ir.command,
+				(unsigned int *) &ir.flags);
+			memcpy(&buf[idx], &ir, sizeof(ir));
+			idx += sizeof(ir);
+			break;
+		default:
+			break;
 		}
-		code = htobe64(code);
-		code_ptr = (uint8_t *) &code;
-		memcpy(&buf[idx], code_ptr + sizeof(code) - rem, rem);
-		idx += rem;
 	}
 
 	if (idx != exp) {
