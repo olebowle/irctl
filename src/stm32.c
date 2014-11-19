@@ -165,7 +165,7 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 			fprintf(stderr, "sub argument out of range\n");
 			return -1;
 		}
-		buf[idx++] = arg;
+		buf[idx++] = arg - 1;
 	}
 
 	/* process if available, this should only be possible with CMD_MACRO */

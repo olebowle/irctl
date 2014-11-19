@@ -12,7 +12,7 @@ done
 for w_slot in $(seq $wake_slots); do
 	./irctl -dstm32 -w${w_slot} -g /dev/hidraw0
 done
-
+#exit 0
 echo "write pattern to eeprom"
 i=0
 for m_slot in $(seq $macro_slots); do
