@@ -184,6 +184,7 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 		case CMD_ALARM:
 			sscanf(args.set, "%"PRIx32"", (unsigned int *) &buf[idx]);
 			break;
+		case CMD_EMIT:
 		case CMD_MACRO:
 		case CMD_WAKE:
 			sscanf(args.set, "0x%02x%04x%04x%02x",

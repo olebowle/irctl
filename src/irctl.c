@@ -19,7 +19,7 @@ usage (char *name)
 		"	%s -d driver [-c|-e IR|-f firmware] device\n\n"
 		"	-c, --caps		get capabilities of controller\n"
 		"	-d, --driver		driver to use to communicate to controller\n"
-		"	-e, --emit=IR		IR-code to emit once\n"
+		"	-e, --emit		emit once\n"
 		"	-f, --flash=FW		flash firmware FW to controller\n"
 		"	-g, --get		get property\n"
 		"	-s, --set=ARG		set property to ARG\n"
@@ -36,11 +36,15 @@ usage (char *name)
 		"		%s -dstm32 -a -g /dev/hidraw0\n"
 		"	2. Set first wakeup ir-code to 0x112233445566\n"
 		"		%s -dstm32 -w1 -s0x112233445566 /dev/hidraw0\n"
-		"	3. Set third macro to be triggered by 0x112233445566,\n"
+		"	3. Send 0x112233445566 once\n"
+		"		%s -dstm32 -e -s0x112233445566 /dev/hidraw0\n", name, name, name);
+	fprintf(stderr,
+		"	4. Set third macro to be triggered by 0x112233445566,\n"
 		"	   which will when send out two commands (1: 0x778899AABBCC, 2: 0xDDEEFF001122)\n"
 		"		%s -dstm32 -m3 -i0 -s0x112233445566 /dev/hidraw0\n"
 		"		%s -dstm32 -m3 -i1 -s0x778899AABBCC /dev/hidraw0\n"
-		"		%s -dstm32 -m3 -i2 -s0xDDEEFF001122 /dev/hidraw0\n", name, name, name, name, name);
+		"		%s -dstm32 -m3 -i2 -s0xDDEEFF001122 /dev/hidraw0\n"
+		"		%s -dstm32 -m3 -i3 -r /dev/hidraw0\n", name, name, name, name);
 	exit(EXIT_FAILURE);
 }
 
@@ -53,21 +57,21 @@ main (int argc, char **argv)
 	struct rc_driver drv;
 	extern char *optarg;
 	struct option long_options[] = {
-		{"alarm",	no_argument,	 	NULL,	'a'},
-		{"caps",	no_argument, 		NULL,	'c'},
+		{"alarm",	no_argument,		NULL,	'a'},
+		{"caps",	no_argument,		NULL,	'c'},
 		{"driver",	required_argument,	NULL,	'd'},
-		{"emit",	required_argument, 	NULL,	'e'},
+		{"emit",	no_argument,		NULL,	'e'},
 		{"flash",	required_argument,	NULL,	'f'},
-		{"get",		no_argument, 		NULL,	'g'},
-		{"ir",		required_argument, 	NULL,	'i'},
-		{"macro",	required_argument, 	NULL,	'm'},
-		{"reset",	no_argument,	 	NULL,	'r'},
-		{"set",		required_argument, 	NULL,	's'},
-		{"wakeup",	required_argument, 	NULL,	'w'},
+		{"get",		no_argument,		NULL,	'g'},
+		{"ir",		required_argument,	NULL,	'i'},
+		{"macro",	required_argument,	NULL,	'm'},
+		{"reset",	no_argument,		NULL,	'r'},
+		{"set",		required_argument,	NULL,	's'},
+		{"wakeup",	required_argument,	NULL,	'w'},
 		{0, 0, 0, 0}
 	};
 
-	while ((tmp = getopt_long (argc, argv, "acd:e:f:gi:m:rs:w:", long_options, NULL)) != -1) {
+	while ((tmp = getopt_long (argc, argv, "acd:ef:gi:m:rs:w:", long_options, NULL)) != -1) {
 		switch (tmp) {
 		case 'a':
 			args.cmd = CMD_ALARM;
@@ -81,9 +85,9 @@ main (int argc, char **argv)
 			args.drv_name = optarg;
 			break;
 		case 'e':
-			args.emit = optarg;
+			args.acc = ACC_SET;
 			args.cmd = CMD_EMIT;
-			args.main_cmd++;
+			args.sub_cmd++;
 			break;
 		case 'f':
 			args.fw = optarg;
