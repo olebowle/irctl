@@ -50,8 +50,7 @@ struct rc_device {
 	const uint8_t *wake_slots;
 
 	const struct com_ssize (*com_mat)[ACCESS_COUNT][COMMAND_COUNT];
-	const uint8_t *rx_protocols;
-	const uint8_t *tx_protocols;
+	const uint8_t *protocols;
 };
 
 struct rc_driver {

@@ -18,7 +18,7 @@ const struct com_ssize stm32_com_mat[ACCESS_COUNT][COMMAND_COUNT] = {
 /* RESET */	{{0,0},	{0,0},	{0,0},	{3,3},	{5,3},	{4,3}}
 };
 
-const uint8_t stm32_rx_protocols[IRMP_N_PROTOCOLS] = {
+const uint8_t stm32_protocols[] = {
 	IRMP_SIRCS_PROTOCOL,
 	IRMP_NEC_PROTOCOL,
 	IRMP_SAMSUNG_PROTOCOL,
@@ -30,25 +30,7 @@ const uint8_t stm32_rx_protocols[IRMP_N_PROTOCOLS] = {
 	IRMP_DENON_PROTOCOL,
 	IRMP_RC5_PROTOCOL,
 	IRMP_RC6_PROTOCOL,
-	IRMP_IR60_PROTOCOL,
-	IRMP_GRUNDIG_PROTOCOL,
-	IRMP_SIEMENS_PROTOCOL,
-	IRMP_NOKIA_PROTOCOL,
-	0
-};
-
-const uint8_t stm32_tx_protocols[IRMP_N_PROTOCOLS] = {
-	IRMP_SIRCS_PROTOCOL,
-	IRMP_NEC_PROTOCOL,
-	IRMP_SAMSUNG_PROTOCOL,
-	IRMP_KASEIKYO_PROTOCOL,
-	IRMP_JVC_PROTOCOL,
-	IRMP_NEC16_PROTOCOL,
-	IRMP_NEC42_PROTOCOL,
-	IRMP_MATSUSHITA_PROTOCOL,
-	IRMP_DENON_PROTOCOL,
-	IRMP_RC5_PROTOCOL,
-	IRMP_RC6_PROTOCOL,
+	IRMP_RC6A_PROTOCOL,
 	IRMP_IR60_PROTOCOL,
 	IRMP_GRUNDIG_PROTOCOL,
 	IRMP_SIEMENS_PROTOCOL,
@@ -74,8 +56,7 @@ stm32_init(struct rc_device *dev)
 	dev->macro_depth = &stm32_macro_depth;
 	dev->wake_slots = &stm32_wake_slots;
 	dev->com_mat = &stm32_com_mat;
-	dev->rx_protocols = stm32_rx_protocols;
-	dev->tx_protocols = stm32_tx_protocols;
+	dev->protocols = stm32_protocols;
 }
 
 int
@@ -192,6 +173,11 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 				(unsigned int *) &ir.address,
 				(unsigned int *) &ir.command,
 				(unsigned int *) &ir.flags);
+
+			if (!strchr((const char *) &stm32_protocols, ir.protocol))
+				fprintf(stderr, "protocol NOT suported\n");
+			return -1;
+
 			memcpy(&buf[idx], &ir, sizeof(ir));
 			idx += sizeof(ir);
 			break;
