@@ -125,10 +125,14 @@ main (int argc, char **argv)
 			break;
 		}
 	}
-	if (args.main_cmd != 1 || args.sub_cmd > 1 || (args.sub_cmd && !args.main_cmd) || (args.cmd == CMD_MACRO && !args.ir) || optind + 1 != argc || !args.drv_name)
+	if (args.main_cmd != 1 || args.sub_cmd > 1 || (args.sub_cmd && !args.main_cmd) || (args.cmd == CMD_MACRO && !args.ir) || optind + 1 != argc)
 		usage(argv[0]);
 
 	args.path = argv[optind];
+
+	/* default driver: stm32 */
+	if (!args.drv_name)
+		args.drv_name = "stm32";
 
 	memset(&drv, 0, sizeof(drv));
 	if (!strcmp(args.drv_name, "stm32")) {
