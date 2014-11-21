@@ -174,9 +174,10 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 				(unsigned int *) &ir.command,
 				(unsigned int *) &ir.flags);
 
-			if (!strchr((const char *) &stm32_protocols, ir.protocol))
+			if (!strchr((const char *) &stm32_protocols, ir.protocol)) {
 				fprintf(stderr, "protocol NOT suported\n");
-			return -1;
+				return -1;
+			}
 
 			memcpy(&buf[idx], &ir, sizeof(ir));
 			idx += sizeof(ir);
