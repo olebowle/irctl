@@ -18,29 +18,10 @@ const struct com_ssize stm32_com_mat[ACCESS_COUNT][COMMAND_COUNT] = {
 /* RESET */	{{0,0},	{0,0},	{0,0},	{3,3},	{5,3},	{4,3}}
 };
 
-const uint8_t stm32_protocols[] = {
-	IRMP_SIRCS_PROTOCOL,
-	IRMP_NEC_PROTOCOL,
-	IRMP_SAMSUNG_PROTOCOL,
-	IRMP_KASEIKYO_PROTOCOL,
-	IRMP_JVC_PROTOCOL,
-	IRMP_NEC16_PROTOCOL,
-	IRMP_NEC42_PROTOCOL,
-	IRMP_MATSUSHITA_PROTOCOL,
-	IRMP_DENON_PROTOCOL,
-	IRMP_RC5_PROTOCOL,
-	IRMP_RC6_PROTOCOL,
-	IRMP_RC6A_PROTOCOL,
-	IRMP_IR60_PROTOCOL,
-	IRMP_GRUNDIG_PROTOCOL,
-	IRMP_SIEMENS_PROTOCOL,
-	IRMP_NOKIA_PROTOCOL,
-	0
-};
-
-const uint8_t stm32_macro_slots = 8;
-const uint8_t stm32_macro_depth = 8;
-const uint8_t stm32_wake_slots = 8;
+uint8_t stm32_protocols[CAP_QUERIES * BYTES_PER_QUERY] = {0};
+uint8_t stm32_macro_slots = 0;
+uint8_t stm32_macro_depth = 0;
+uint8_t stm32_wake_slots = 0;
 
 /* https://stackoverflow.com/questions/8774567 */
 static inline uint64_t
@@ -52,9 +33,9 @@ bit_mask(size_t x)
 void
 stm32_init(struct rc_device *dev)
 {
-	dev->macro_slots = &stm32_macro_slots;
-	dev->macro_depth = &stm32_macro_depth;
-	dev->wake_slots = &stm32_wake_slots;
+	dev->macro_slots = stm32_macro_slots;
+	dev->macro_depth = stm32_macro_depth;
+	dev->wake_slots = stm32_wake_slots;
 	dev->com_mat = &stm32_com_mat;
 	dev->protocols = stm32_protocols;
 }
@@ -75,6 +56,41 @@ stm32_close(struct rc_device *dev)
 	if (dev->fd == -1)
 		perror("closing device failed");
 	return dev->fd;
+}
+
+void
+stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
+{
+	size_t idx;
+	uint8_t i;
+
+	for(i=0; i<CAP_QUERIES; i++) {
+		idx = 0;
+		/* ReportID */
+		buf[idx++] = 0x03;
+		buf[idx++] = STAT_CMD;
+		buf[idx++] = ACC_GET;
+		buf[idx++] = CMD_CAPS;
+		buf[idx++] = i;
+		stm32_write(dev, buf, n);
+		stm32_read(dev, buf, n);
+		if(!i) {
+			dev->macro_slots = buf[4];
+			dev->macro_depth = buf[5];
+			dev->wake_slots = buf[6];
+			continue;
+		}
+		memcpy(&stm32_protocols[BYTES_PER_QUERY * (i-1)], &buf[4], n - 4);
+	}
+#ifdef DEBUG
+	printf("macro_slots: %u\n", dev->macro_slots);
+	printf("macro_depth: %u\n", dev->macro_depth);
+	printf("wake_slots: %u\n", dev->wake_slots);
+	printf("supported protocols: 0x");
+	for (idx = 0; idx < strlen((char*) stm32_protocols); idx++)
+		printf("%02x", stm32_protocols[idx]);
+	printf("\n");
+#endif /* DEBUG */
 }
 
 int
@@ -141,8 +157,8 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	if (args.sub_arg) {
 		arg = atoi(args.sub_arg);
 		if (arg < 1 ||
-		    (args.cmd == CMD_MACRO && arg > dev->macro_slots[0]) ||
-		    (args.cmd == CMD_WAKE && arg > dev->wake_slots[0])) {
+		    (args.cmd == CMD_MACRO && arg > dev->macro_slots) ||
+		    (args.cmd == CMD_WAKE && arg > dev->wake_slots)) {
 			fprintf(stderr, "sub argument out of range\n");
 			return -1;
 		}
@@ -152,7 +168,7 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	/* process if available, this should only be possible with CMD_MACRO */
 	if (args.ir) {
 		arg = atoi(args.ir);
-		if (arg < 0 || arg > dev->macro_depth[0]) {
+		if (arg < 0 || arg > dev->macro_depth) {
 			fprintf(stderr, "ir argument out of range\n");
 			return -1;
 		}
@@ -198,31 +214,11 @@ ssize_t
 stm32_read(struct rc_device *dev, void *buf, size_t n)
 {
 	ssize_t ret;
-	ssize_t exp;
-	ssize_t idx = 0;
-
-	/* expected number of bytes to receive
-	 * -1 signifies an undefined number of bytes, so read only once
-	 */
-	exp = (*dev->com_mat)[args.acc][args.cmd].rx;
-	if (exp >= 0 && (size_t) exp > n) {
-		fprintf(stderr, "buffer size not sufficient\n");
-		return -1;
+	ret = read(dev->fd, buf, n);
+	if (ret == -1) {
+		perror("reading from device failed");
 	}
-
-	do {
-		ret = read(dev->fd, buf, n);
-		if (ret == -1 && errno == EINTR) {
-			printf("interrupted by a signal while reading, continuing\n");
-			continue;
-		}
-		if (ret == -1) {
-			perror("reading from device failed");
-			break;
-		}
-		idx += ret;
-	} while (idx < exp || exp < 0);
-	return idx;
+	return ret;
 }
 
 ssize_t

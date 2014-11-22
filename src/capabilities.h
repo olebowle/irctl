@@ -45,12 +45,12 @@ struct com_ssize {
 
 struct rc_device {
 	int fd;
-	const uint8_t *macro_slots;
-	const uint8_t *macro_depth;
-	const uint8_t *wake_slots;
+	uint8_t macro_slots;
+	uint8_t macro_depth;
+	uint8_t wake_slots;
 
 	const struct com_ssize (*com_mat)[ACCESS_COUNT][COMMAND_COUNT];
-	const uint8_t *protocols;
+	uint8_t *protocols;
 };
 
 struct rc_driver {
@@ -63,6 +63,7 @@ struct rc_driver {
 	ssize_t (*read) (struct rc_device *dev, void *buf, size_t n);
 	ssize_t (*write) (struct rc_device *dev, const void *buf, size_t n);
 
+	void (*get_caps) (struct rc_device *dev, uint8_t * const buf, size_t n);
 	int (*parse_buf) (struct rc_device *dev, const uint8_t *buf, size_t n);
 	ssize_t (*prepare_buf) (struct rc_device *dev, uint8_t * const buf, size_t n);
 };

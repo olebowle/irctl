@@ -139,6 +139,7 @@ main (int argc, char **argv)
 		drv.init = stm32_init;
 		drv.open = stm32_open;
 		drv.close = stm32_close;
+		drv.get_caps = stm32_get_caps;
 		drv.prepare_buf = stm32_prepare_buf;
 		drv.parse_buf = stm32_parse_buf;
 		drv.read = stm32_read;
@@ -150,6 +151,14 @@ main (int argc, char **argv)
 
 	if (drv.init)
 		drv.init(&drv.dev);
+
+	if (drv.open)
+		ret = drv.open(&drv.dev, args.path, O_RDWR);
+		if (ret == -1)
+			exit(EXIT_FAILURE);
+
+	if (drv.get_caps)
+		drv.get_caps(&drv.dev, buf, sizeof(buf));
 
 	if (!(*drv.dev.com_mat)[args.acc][args.cmd].rx) {
 		fprintf(stderr, "operation not supported\n");
@@ -169,11 +178,6 @@ main (int argc, char **argv)
 		printf("%02x", buf[tmp]);
 	printf("\n");
 #endif /* DEBUG */
-
-	if (drv.open)
-		ret = drv.open(&drv.dev, args.path, O_RDWR);
-		if (ret == -1)
-			exit(EXIT_FAILURE);
 
 	if (drv.write)
 		ret = drv.write(&drv.dev, buf, sizeof(buf));
