@@ -7,11 +7,8 @@
 /* first 3 bytes: STAT_CMD ACC_GET CMD_CAPS
  * not useable to transmit information */
 #define BYTES_PER_QUERY		(HID_IN_BUFFER_SIZE - 3)
-/*
- * +1 --> first query is for macro_slots, macro_depth, wake_slots
- * +1 --> make sure we really have a NULL termination in all cases
- */
-#define CAP_QUERIES		(IRMP_N_PROTOCOLS / BYTES_PER_QUERY + 2)
+/* +1 --> first query is for macro_slots, macro_depth, wake_slots */
+#define CAP_QUERIES		(IRMP_N_PROTOCOLS / BYTES_PER_QUERY + 1)
 
 void stm32_init(struct rc_device *dev);
 int stm32_open(struct rc_device *dev, const char *path, int flags);

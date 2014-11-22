@@ -18,7 +18,8 @@ const struct com_ssize stm32_com_mat[ACCESS_COUNT][COMMAND_COUNT] = {
 /* RESET */	{{0,0},	{0,0},	{0,0},	{3,3},	{5,3},	{4,3}}
 };
 
-uint8_t stm32_protocols[CAP_QUERIES * BYTES_PER_QUERY] = {0};
+/* +1 --> make sure we really have a NULL termination in all cases */
+uint8_t stm32_protocols[CAP_QUERIES * BYTES_PER_QUERY + 1] = {0};
 uint8_t stm32_macro_slots = 0;
 uint8_t stm32_macro_depth = 0;
 uint8_t stm32_wake_slots = 0;
