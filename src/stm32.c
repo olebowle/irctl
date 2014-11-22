@@ -103,18 +103,14 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 
 	switch((enum status) buf[idx++]) {
 	case STAT_CMD:
-		/* we should not get a command from the device, only an answer*/
+		/* we should not get a command from the device, only an answer */
 		fprintf(stderr, "unexpected data received (command instead of answer)\n");
 		return EXIT_FAILURE;
 	case STAT_SUCCESS:
-#ifdef DEBUG
-		printf("command succeeded\n");
-#endif
+		fprintf(stderr, "command succeeded\n");
 		break;
 	case STAT_FAILURE:
-#ifdef DEBUG
-		printf("command failed\n");
-#endif
+		fprintf(stderr, "command failed\n");
 		break;
 	default:
 		fprintf(stderr, "unexpected data received\n");
@@ -126,11 +122,24 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 		return EXIT_FAILURE;
 	}
 
-	printf("0x");
-	/* expected number of bytes to receive + ReportID */
-	for (; idx < (*dev->com_mat)[args.acc][args.cmd].rx + 1; idx++)
-		printf("%02x", buf[idx]);
-	printf("\n");
+	if(args.acc != ACC_GET)
+		return EXIT_SUCCESS;
+
+	switch(args.cmd) {
+	case CMD_ALARM:
+		printf("%u\n", *((uint32_t *) &buf[idx]));
+		break;
+	case CMD_MACRO:
+	case CMD_WAKE:
+		printf("0x");
+		/* expected number of bytes to receive + ReportID */
+		for (; idx < (*dev->com_mat)[args.acc][args.cmd].rx + 1; idx++)
+			printf("%02x", buf[idx]);
+		printf("\n");
+		break;
+	default:
+		break;
+	}
 	return EXIT_SUCCESS;
 }
 
@@ -180,7 +189,8 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	if (args.set) {
 		switch((enum command) args.cmd) {
 		case CMD_ALARM:
-			sscanf(args.set, "%"PRIx32"", (unsigned int *) &buf[idx]);
+			sscanf(args.set, "%"SCNu32"", (uint32_t *) &buf[idx]);
+			idx += sizeof(uint32_t);
 			break;
 		case CMD_EMIT:
 		case CMD_MACRO:
