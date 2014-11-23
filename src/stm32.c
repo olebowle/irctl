@@ -197,18 +197,24 @@ stm32_prepare_buf(struct rc_device *dev, uint8_t * const buf, size_t n)
 	if (args.set) {
 		switch((enum command) args.cmd) {
 		case CMD_ALARM:
-			sscanf(args.set, "%"SCNu32"", (uint32_t *) &buf[idx]);
+			if (sscanf(args.set, "%i", (int32_t *) &buf[idx]) != 1) {
+				fprintf(stderr, "error scanning set argument\n");
+				return -1;
+			}
 			idx += sizeof(uint32_t);
 			break;
 		case CMD_EMIT:
 		case CMD_MACRO:
 		case CMD_WAKE:
-			sscanf(args.set, "0x%02x%04x%04x%02x",
-				(unsigned int *) &ir.protocol,
-				(unsigned int *) &ir.address,
-				(unsigned int *) &ir.command,
-				(unsigned int *) &ir.flags);
-
+			if (sscanf(args.set, "0x%02x%04x%04x%02x",
+			   (unsigned int *) &ir.protocol,
+			   (unsigned int *) &ir.address,
+			   (unsigned int *) &ir.command,
+			   (unsigned int *) &ir.flags) != 4) {
+				fprintf(stderr, "error scanning set argument, "
+					"should be in hex format (e.g. 0x112233445566)\n");
+				return -1;
+			}
 			if (!strchr((const char *) &stm32_protocols, ir.protocol)) {
 				fprintf(stderr, "protocol NOT suported\n");
 				return -1;
