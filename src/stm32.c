@@ -89,7 +89,7 @@ stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
 		printf("wake_slots: %u\n", dev->wake_slots);
 		printf("supported protocols:");
 		for (idx = 0; idx < strlen((char*) stm32_protocols); idx++)
-			printf(" %02x", stm32_protocols[idx]);
+			printf(" %u", stm32_protocols[idx]);
 		printf("\n");
 	}
 }
