@@ -33,7 +33,7 @@ enum __attribute__ ((__packed__)) status {
 
 struct global_args {
 	char *drv_name, *fw, *ir, *path, *set, *sub_arg;
-	unsigned int main_cmd, sub_cmd;
+	uint8_t main_cmd, sub_cmd, get_caps;
 	enum access acc;
 	enum command cmd;
 };

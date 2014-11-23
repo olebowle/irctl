@@ -83,15 +83,15 @@ stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
 		}
 		memcpy(&stm32_protocols[BYTES_PER_QUERY * (i-1)], &buf[4], n - 4);
 	}
-#ifdef DEBUG
-	printf("macro_slots: %u\n", dev->macro_slots);
-	printf("macro_depth: %u\n", dev->macro_depth);
-	printf("wake_slots: %u\n", dev->wake_slots);
-	printf("supported protocols: 0x");
-	for (idx = 0; idx < strlen((char*) stm32_protocols); idx++)
-		printf("%02x", stm32_protocols[idx]);
-	printf("\n");
-#endif /* DEBUG */
+	if(args.get_caps) {
+		printf("macro_slots: %u\n", dev->macro_slots);
+		printf("macro_depth: %u\n", dev->macro_depth);
+		printf("wake_slots: %u\n", dev->wake_slots);
+		printf("supported protocols:");
+		for (idx = 0; idx < strlen((char*) stm32_protocols); idx++)
+			printf(" %02x", stm32_protocols[idx]);
+		printf("\n");
+	}
 }
 
 int

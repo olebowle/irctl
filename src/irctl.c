@@ -14,11 +14,11 @@ static void
 usage (char *name)
 {
 	fprintf(stderr,
-		"Usage:	%s -d driver -g|-r  [-a|-i slot|-m slot|-w slot] device\n"
-		"	%s -d driver -s ARG [-a|-i slot|-m slot|-w slot] device\n"
-		"	%s -d driver [-c|-e IR|-f firmware] device\n\n"
-		"	-c, --caps		get capabilities of controller\n"
-		"	-d, --driver		driver to use to communicate to controller\n"
+		"Usage:	%s [-c] [-d driver] -g|-r  [-a|   -m M_SLOT -i I_SLOT|-w W_SLOT] device\n"
+		"	%s [-c] [-d driver] -s ARG [-a|-e|-m M_SLOT -i I_SLOT|-w W_SLOT] device\n"
+		"	%s [-c] [-d driver] -f firmware device\n\n"
+		"	-c, --caps		print capabilities of controller\n"
+		"	-d, --driver		driver to use to communicate to controller (default: stm32)\n"
 		"	-e, --emit		emit once\n"
 		"	-f, --flash=FW		flash firmware FW to controller\n"
 		"	-g, --get		get property\n"
@@ -34,17 +34,21 @@ usage (char *name)
 		"Examples (using driver stm32 on /dev/hidraw0):\n"
 		"	1. Get wakeup time in seconds from now\n"
 		"		%s -dstm32 -a -g /dev/hidraw0\n"
-		"	2. Set first wakeup ir-code to 0x112233445566\n"
+		"	2. Set wakeup time to 1 hour from now\n"
+		"		%s -dstm32 -a -s3600 /dev/hidraw0\n"
+		"	3. Set first wakeup ir-code to 0x112233445566\n"
 		"		%s -dstm32 -w1 -s0x112233445566 /dev/hidraw0\n"
-		"	3. Send 0x112233445566 once\n"
-		"		%s -dstm32 -e -s0x112233445566 /dev/hidraw0\n", name, name, name);
+		"	4. Send 0x112233445566 once\n"
+		"		%s -dstm32 -e -s0x112233445566 /dev/hidraw0\n", name, name, name, name);
 	fprintf(stderr,
-		"	4. Set third macro to be triggered by 0x112233445566,\n"
+		"	5. Set third macro to be triggered by 0x112233445566,\n"
 		"	   which will when send out two commands (1: 0x778899AABBCC, 2: 0xDDEEFF001122)\n"
 		"		%s -dstm32 -m3 -i0 -s0x112233445566 /dev/hidraw0\n"
 		"		%s -dstm32 -m3 -i1 -s0x778899AABBCC /dev/hidraw0\n"
 		"		%s -dstm32 -m3 -i2 -s0xDDEEFF001122 /dev/hidraw0\n"
-		"		%s -dstm32 -m3 -i3 -r /dev/hidraw0\n", name, name, name, name);
+		"		%s -dstm32 -m3 -i3 -r /dev/hidraw0\n\n"
+		"	These ir-codes can be retrieved from irmplircd and are based on the IRMP protocol.\n"
+		, name, name, name, name);
 	exit(EXIT_FAILURE);
 }
 
@@ -78,8 +82,7 @@ main (int argc, char **argv)
 			args.sub_cmd++;
 			break;
 		case 'c':
-			args.cmd = CMD_CAPS;
-			args.main_cmd++;
+			args.get_caps = 1;
 			break;
 		case 'd':
 			args.drv_name = optarg;
