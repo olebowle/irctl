@@ -32,13 +32,21 @@ bit_mask(size_t x)
 }
 
 void
-stm32_init(struct rc_device *dev)
+stm32_init(struct rc_driver *drv)
 {
-	dev->macro_slots = stm32_macro_slots;
-	dev->macro_depth = stm32_macro_depth;
-	dev->wake_slots = stm32_wake_slots;
-	dev->com_mat = &stm32_com_mat;
-	dev->protocols = stm32_protocols;
+	drv->open = stm32_open;
+	drv->close = stm32_close;
+	drv->get_caps = stm32_get_caps;
+	drv->prepare_buf = stm32_prepare_buf;
+	drv->parse_buf = stm32_parse_buf;
+	drv->read = stm32_read;
+	drv->write = stm32_write;
+
+	drv->dev.macro_slots = stm32_macro_slots;
+	drv->dev.macro_depth = stm32_macro_depth;
+	drv->dev.wake_slots = stm32_wake_slots;
+	drv->dev.com_mat = &stm32_com_mat;
+	drv->dev.protocols = stm32_protocols;
 }
 
 int

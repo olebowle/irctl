@@ -140,20 +140,13 @@ main (int argc, char **argv)
 	memset(&drv, 0, sizeof(drv));
 	if (!strcmp(args.drv_name, "stm32")) {
 		drv.init = stm32_init;
-		drv.open = stm32_open;
-		drv.close = stm32_close;
-		drv.get_caps = stm32_get_caps;
-		drv.prepare_buf = stm32_prepare_buf;
-		drv.parse_buf = stm32_parse_buf;
-		drv.read = stm32_read;
-		drv.write = stm32_write;
 	} else {
 		fprintf(stderr, "unkown driver\n");
 		exit(EXIT_FAILURE);
 	}
 
 	if (drv.init)
-		drv.init(&drv.dev);
+		drv.init(&drv);
 
 	if (drv.open)
 		ret = drv.open(&drv.dev, args.path, O_RDWR);

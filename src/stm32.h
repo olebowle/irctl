@@ -10,7 +10,7 @@
 /* +1 --> first query is for macro_slots, macro_depth, wake_slots */
 #define CAP_QUERIES		(IRMP_N_PROTOCOLS / BYTES_PER_QUERY + 1)
 
-void stm32_init(struct rc_device *dev);
+void stm32_init(struct rc_driver *drv);
 int stm32_open(struct rc_device *dev, const char *path, int flags);
 int stm32_close(struct rc_device *dev);
 void stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n);

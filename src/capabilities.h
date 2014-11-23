@@ -56,7 +56,7 @@ struct rc_device {
 struct rc_driver {
 	struct rc_device dev;
 
-	void (*init) (struct rc_device *dev);
+	void (*init) (struct rc_driver *drv);
 	int (*open) (struct rc_device *dev, const char *path, int flags);
 	int (*close) (struct rc_device *dev);
 
