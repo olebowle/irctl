@@ -105,8 +105,9 @@ stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
 int
 stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 {
-	/* 0==ReportID */
+	/* 0 --> ReportID */
 	unsigned int idx = 1;
+	IRMP_DATA* ir_ptr;
 	(void)dev; (void)n;
 
 	switch((enum status) buf[idx++]) {
@@ -139,11 +140,12 @@ stm32_parse_buf(struct rc_device *dev, const uint8_t *buf, size_t n)
 		break;
 	case CMD_MACRO:
 	case CMD_WAKE:
-		printf("0x");
-		/* expected number of bytes to receive + ReportID */
-		for (; idx < (*dev->com_mat)[args.acc][args.cmd].rx + 1; idx++)
-			printf("%02x", buf[idx]);
-		printf("\n");
+		ir_ptr = (IRMP_DATA*) &buf[idx];
+		printf("0x%02x%04x%04x%02x\n",
+			ir_ptr->protocol,
+			ir_ptr->address,
+			ir_ptr->command,
+			ir_ptr->flags);
 		break;
 	default:
 		break;
