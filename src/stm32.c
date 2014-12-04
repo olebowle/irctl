@@ -19,17 +19,10 @@ const struct com_ssize stm32_com_mat[ACCESS_COUNT][COMMAND_COUNT] = {
 };
 
 /* +1 --> make sure we really have a NULL termination in all cases */
-uint8_t stm32_protocols[CAP_QUERIES * BYTES_PER_QUERY + 1] = {0};
+uint8_t stm32_protocols[PROTO_QUERIES * BYTES_PER_QUERY + 1] = {0};
 uint8_t stm32_macro_slots = 0;
 uint8_t stm32_macro_depth = 0;
 uint8_t stm32_wake_slots = 0;
-
-/* https://stackoverflow.com/questions/8774567 */
-static inline uint64_t
-bit_mask(size_t x)
-{
-	return (x >= sizeof(uint64_t) * CHAR_BIT) ? (uint64_t) -1 : (1UL << x) - 1;
-}
 
 void
 stm32_init(struct rc_driver *drv)
@@ -73,7 +66,8 @@ stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
 	size_t idx;
 	uint8_t i;
 
-	for(i=0; i<CAP_QUERIES; i++) {
+	/* +1 --> first query is for macro_slots, macro_depth, wake_slots */
+	for(i=0; i < PROTO_QUERIES + 1; i++) {
 		idx = 0;
 		/* ReportID */
 		buf[idx++] = 0x03;
@@ -89,7 +83,10 @@ stm32_get_caps(struct rc_device *dev, uint8_t * const buf, size_t n)
 			dev->wake_slots = buf[6];
 			continue;
 		}
-		memcpy(&stm32_protocols[BYTES_PER_QUERY * (i-1)], &buf[4], n - 4);
+		memcpy(&stm32_protocols[BYTES_PER_QUERY * (i-1)], &buf[4], n-4);
+		/* stop if \0 in buffer, signifying end of protocol array */
+		if (strnlen((const char *) &buf[4], n-4) < n-4)
+			break;
 	}
 	if(args.get_caps) {
 		printf("macro_slots: %u\n", dev->macro_slots);
