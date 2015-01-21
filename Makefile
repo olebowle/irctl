@@ -7,7 +7,7 @@ SRCS = $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
 
 #DEFINES = -DDEBUG
-INCLUDES = -Isrc -Iext/irmp-2.6.7
+INCLUDES = -Isrc -Iext/irmp
 CFLAGS = -Wall -Wextra -Werror -pedantic $(INCLUDES) $(DEFINES)
 
 $(TARGET): $(OBJS)
@@ -15,7 +15,7 @@ $(TARGET): $(OBJS)
 
 .PHONY: install clean
 install: $(TARGET)
-	install -Dm755 $(TARGET) $(BINDIR)/$(TARGET)
+	install -Dm0755 $(TARGET) $(BINDIR)/$(TARGET)
 
 clean:
 	rm -f $(OBJS) $(TARGET)
