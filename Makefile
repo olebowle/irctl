@@ -8,7 +8,7 @@ OBJS = $(SRCS:.c=.o)
 
 #DEFINES = -DDEBUG
 INCLUDES = -Isrc -Iext/irmp
-CFLAGS = -Wall -Wextra -Werror -pedantic $(INCLUDES) $(DEFINES)
+CFLAGS += -Wall -Wextra -Werror -pedantic $(INCLUDES) $(DEFINES)
 
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^
