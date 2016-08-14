@@ -148,10 +148,11 @@ main (int argc, char **argv)
 	if (drv.init)
 		drv.init(&drv);
 
-	if (drv.open)
+	if (drv.open) {
 		ret = drv.open(&drv.dev, args.path, O_RDWR);
 		if (ret == -1)
 			exit(EXIT_FAILURE);
+	}
 
 	if (drv.get_caps)
 		drv.get_caps(&drv.dev, buf, sizeof(buf));
@@ -175,15 +176,17 @@ main (int argc, char **argv)
 	printf("\n");
 #endif /* DEBUG */
 
-	if (drv.write)
+	if (drv.write) {
 		ret = drv.write(&drv.dev, buf, sizeof(buf));
 		if (ret == -1)
 			exit(EXIT_FAILURE);
+	}
 
-	if (drv.read)
+	if (drv.read) {
 		ret = drv.read(&drv.dev, buf, sizeof(buf));
 		if (ret == -1)
 			exit(EXIT_FAILURE);
+	}
 
 #ifdef DEBUG
 	printf("%lu bytes read\n", ret);
@@ -193,15 +196,17 @@ main (int argc, char **argv)
 	printf("\n");
 #endif /* DEBUG */
 
-	if (drv.parse_buf)
+	if (drv.parse_buf) {
 		ret = drv.parse_buf(&drv.dev, buf, ret);
 		if (ret != EXIT_SUCCESS)
 			exit(ret);
+	}
 
-	if (drv.close)
+	if (drv.close) {
 		ret = drv.close(&drv.dev);
 		if (ret == -1)
 			exit(EXIT_FAILURE);
+	}
 
 	return EXIT_SUCCESS;
 }
